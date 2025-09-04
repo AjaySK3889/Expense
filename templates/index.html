@@ -4,88 +4,139 @@
     <title>Expense Tracker Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Dashboard cards */
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            flex: 1 1 150px;
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .card h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: normal;
+        }
+        .card p {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0 0 0;
+        }
+
+        /* Chart container */
+        #chart-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Navigation buttons */
+        .nav a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 10px 15px;
+            background: #36A2EB;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #2b82c9;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💰 Expense Tracker</h1>
+<div class="container">
+    <h1>💰 Expense Tracker</h1>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ 'success' if category=='success' else 'error' }}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category=='success' else 'error' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-        <!-- Navigation -->
-        <div class="nav">
-            <a href="{{ url_for('add_expense') }}">➕ Add Expense</a>
-            <a href="{{ url_for('view_expenses') }}">📜 View Expenses</a>
-            {% if session.username %}
-                <a href="{{ url_for('logout') }}">🚪 Logout ({{ session.username }})</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-            {% endif %}
-        </div>
-
-        <!-- Total Expenses -->
-        <h2>Total Expenses: ₹
-            {{ "%.2f"|format(summary | sum(attribute='total_spent')) }}
-        </h2>
-
-        <!-- Summary Table -->
-        <h2>Summary by Category</h2>
-        <table border="1">
-            <tr><th>Category</th><th>Total Spent (₹)</th></tr>
-            {% for row in summary %}
-            <tr>
-                <td>{{ row.category_name }}</td>
-                <td>{{ "%.2f"|format(row.total_spent) }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-
-        <!-- Expense Chart -->
-        <h2>📊 Expense Chart</h2>
-        <canvas id="expenseChart" width="400" height="200"></canvas>
+    <!-- Navigation -->
+    <div class="nav">
+        <a href="{{ url_for('add_expense') }}">➕ Add Expense</a>
+        <a href="{{ url_for('view_expenses') }}">📜 View Expenses</a>
+        {% if session.username %}
+            <a href="{{ url_for('logout') }}">🚪 Logout ({{ session.username }})</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
     </div>
 
-    <script>
-        const ctx = document.getElementById('expenseChart').getContext('2d');
-        const expenseChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: [{% for row in summary %}'{{ row.category_name }}',{% endfor %}],
-                datasets: [{
-                    label: 'Expenses',
-                    data: [{% for row in summary %}{{ row.total_spent }},{% endfor %}],
-                    backgroundColor: [
-                        '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                let value = context.raw || 0;
-                                return `${label}: ₹${value.toFixed(2)}`;
-                            }
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Expenses</h3>
+            <p>₹{{ "%.2f"|format(summary | sum(attribute='total_spent')) }}</p>
+        </div>
+        {% for row in summary %}
+        <div class="card" style="background: {% if row.category_name=='Food' %}#FF6384{% elif row.category_name=='Transport' %}#36A2EB{% elif row.category_name=='Entertainment' %}#FFCE56{% elif row.category_name=='Bills' %}#4BC0C0{% else %}#9966FF{% endif %};">
+            <h3>{{ row.category_name }}</h3>
+            <p>₹{{ "%.2f"|format(row.total_spent) }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Chart -->
+    <div id="chart-container">
+        <h2>📊 Expenses by Category</h2>
+        <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const expenseChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [{% for row in summary %}'{{ row.category_name }}',{% endfor %}],
+            datasets: [{
+                label: 'Expenses',
+                data: [{% for row in summary %}{{ row.total_spent }},{% endfor %}],
+                backgroundColor: [
+                    '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ₹${context.raw.toFixed(2)}`;
                         }
                     }
                 }
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>
