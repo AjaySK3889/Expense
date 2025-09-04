@@ -3,40 +3,72 @@
 <head>
     <title>All Expenses</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #36A2EB;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .nav a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 10px 15px;
+            background: #36A2EB;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: #2b82c9;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2>📜 All Expenses</h2>
+<div class="container">
+    <h2>📜 All Expenses</h2>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Category</th>
-                <th>Amount (₹)</th>
-                <th>Description</th>
-            </tr>
-            {% for exp in expenses %}
-            <tr>
-                <td>{{ exp[0] }}</td>
-                <td>{{ exp[1] }}</td>
-                <td>{{ "%.2f"|format(exp[2]) }}</td>
-                <td>{{ exp[3] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-
-        <br>
+    <div class="nav">
         <a href="{{ url_for('add_expense') }}">➕ Add another expense</a>
-        <br>
         <a href="{{ url_for('home') }}">⬅ Back to Dashboard</a>
     </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Amount (₹)</th>
+            <th>Description</th>
+        </tr>
+        {% for exp in expenses %}
+        <tr>
+            <td>{{ exp[0] }}</td>
+            <td>{{ exp[1] }}</td>
+            <td>{{ "%.2f"|format(exp[2]) }}</td>
+            <td>{{ exp[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 </body>
 </html>
