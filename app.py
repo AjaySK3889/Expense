@@ -52,10 +52,22 @@ def login_required(f):
 
 # Routes
 @app.route('/')
-def home():
-    if 'user_id' in session:
-        return redirect(url_for('view_expenses'))
-    return redirect(url_for('login'))
+@login_required
+def dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Summary by category for pie chart
+    cursor.execute('''
+        SELECT category AS category_name, SUM(amount) AS total_spent
+        FROM expenses
+        WHERE user_id = ?
+        GROUP BY category
+    ''', (session['user_id'],))
+    summary = cursor.fetchall()
+    
+    conn.close()
+    return render_template('index.html', summary=summary)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -94,7 +106,7 @@ def login():
             session['user_id'] = user['id']
             session['username'] = user['username']
             flash(f'✅ Welcome, {user["username"]}!', 'success')
-            return redirect(url_for('view_expenses'))
+            return redirect(url_for('dashboard'))
         else:
             flash('❌ Invalid username or password', 'error')
     return render_template('login.html')
@@ -134,18 +146,8 @@ def view_expenses():
     cursor = conn.cursor()
     cursor.execute('SELECT id, category, amount, description FROM expenses WHERE user_id = ?', (session['user_id'],))
     expenses = cursor.fetchall()
-    
-    # Summary by category for index.html chart
-    cursor.execute('''
-        SELECT category AS category_name, SUM(amount) AS total_spent
-        FROM expenses
-        WHERE user_id = ?
-        GROUP BY category
-    ''', (session['user_id'],))
-    summary = cursor.fetchall()
-    
     conn.close()
-    return render_template('view_expenses.html', expenses=expenses, summary=summary)
+    return render_template('view_expenses.html', expenses=expenses)
 
 if __name__ == '__main__':
     app.run(debug=True)
