@@ -60,17 +60,20 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Summary by category for pie chart
+    # Step 1: Summary by category
     cursor.execute('''
         SELECT category AS category_name, SUM(amount) AS total_spent
         FROM expenses
         WHERE user_id = ?
         GROUP BY category
     ''', (session['user_id'],))
-    summary = cursor.fetchall()
+    summary = cursor.fetchall()  # <-- this gets a list of rows
     
     conn.close()
-    return render_template('dashboard.html')
+    
+    # Pass summary to template
+    return render_template('dashboard.html', summary=summary)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
