@@ -1,0 +1,8 @@
+Flask==2.3.3
+flask-bcrypt==1.0.1
+flask-login==0.6.3
+psycopg2-binary
+gunicorn==21.2.0
+
+
+
