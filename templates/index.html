@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Expense Tracker</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="nav">
+            <a href="{{ url_for('add_expense') }}">➕ Add Expense</a>
+            <a href="{{ url_for('view_expenses') }}">📜 View Expenses</a>
+            {% if session.username %}
+                <a href="{{ url_for('logout') }}">🚪 Logout ({{ session.username }})</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+            {% endif %}
+        </div>
+
+        <h2>Summary by Category</h2>
+        <table>
+            <tr><th>Category</th><th>Total Spent (₹)</th></tr>
+            {% for row in summary %}
+            <tr>
+                <td>{{ row.category_name }}</td>
+                <td>{{ "%.2f"|format(row.total_spent) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>📊 Expense Chart</h2>
+        <canvas id="expenseChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [{% for row in summary %}'{{ row.category_name }}',{% endfor %}],
+                datasets: [{
+                    label: 'Expenses',
+                    data: [{% for row in summary %}{{ row.total_spent }},{% endfor %}],
+                    backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF'],
+                    borderWidth: 1
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
