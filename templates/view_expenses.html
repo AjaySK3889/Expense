@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Expenses</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>📜 All Expenses</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Amount (₹)</th>
+                <th>Description</th>
+            </tr>
+            {% for exp in expenses %}
+            <tr>
+                <td>{{ exp[0] }}</td>
+                <td>{{ exp[1] }}</td>
+                <td>{{ "%.2f"|format(exp[2]) }}</td>
+                <td>{{ exp[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <br>
+        <a href="{{ url_for('add_expense') }}">➕ Add another expense</a>
+        <br>
+        <a href="{{ url_for('home') }}">⬅ Back to Dashboard</a>
+    </div>
+</body>
+</html>
