@@ -9,14 +9,18 @@
     <div class="container">
         <h1>💰 Expense Tracker</h1>
 
+        <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
+              <div class="alert alert-{{ 'success' if category=='success' else 'error' }}">
+                {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
+        <!-- Navigation -->
         <div class="nav">
             <a href="{{ url_for('add_expense') }}">➕ Add Expense</a>
             <a href="{{ url_for('view_expenses') }}">📜 View Expenses</a>
@@ -27,8 +31,14 @@
             {% endif %}
         </div>
 
+        <!-- Total Expenses -->
+        <h2>Total Expenses: ₹
+            {{ "%.2f"|format(summary | sum(attribute='total_spent')) }}
+        </h2>
+
+        <!-- Summary Table -->
         <h2>Summary by Category</h2>
-        <table>
+        <table border="1">
             <tr><th>Category</th><th>Total Spent (₹)</th></tr>
             {% for row in summary %}
             <tr>
@@ -38,6 +48,7 @@
             {% endfor %}
         </table>
 
+        <!-- Expense Chart -->
         <h2>📊 Expense Chart</h2>
         <canvas id="expenseChart" width="400" height="200"></canvas>
     </div>
@@ -51,9 +62,28 @@
                 datasets: [{
                     label: 'Expenses',
                     data: [{% for row in summary %}{{ row.total_spent }},{% endfor %}],
-                    backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF'],
+                    backgroundColor: [
+                        '#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40'
+                    ],
                     borderWidth: 1
                 }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.raw || 0;
+                                return `${label}: ₹${value.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
             }
         });
     </script>
