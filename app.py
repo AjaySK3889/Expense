@@ -38,6 +38,9 @@ def init_db():
     conn.close()
 
 init_db()
+@app.route('/')
+def index():
+    return redirect(url_for('dashboard'))
 
 # Decorator for login-required pages
 def login_required(f):
