@@ -51,7 +51,7 @@ def login_required(f):
     return decorated_function
 
 # Routes
-@app.route('/')
+@app.route('/dashboard')
 @login_required
 def dashboard():
     conn = get_db_connection()
@@ -67,8 +67,7 @@ def dashboard():
     summary = cursor.fetchall()
     
     conn.close()
-    return render_template('index.html', summary=summary)
-
+    return render_template('dashboard.html')
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
